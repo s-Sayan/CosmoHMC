@@ -21,7 +21,7 @@ python --version
 To install CosmoHMC from the source, first, clone the repository:
 
 ```bash
-git clone https://github.com/yourgithub/CosmoHMC.git
+git clone https://github.com/s-Sayan/CosmoHMC.git
 cd CosmoHMC
 pip install -e .
 ```
