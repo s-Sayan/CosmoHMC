@@ -1,5 +1,6 @@
 # File: cosmohmc/dist1d/sampler.py
 import numpy as np
+from tqdm import tqdm
 
 class mcmcsampler:
     def __init__(self, log_prob, proposal_width=1, n_samples=1000):
@@ -26,7 +27,7 @@ class mcmcsampler:
         samples = []
         accepted = 0  # Count of accepted proposals
 
-        for _ in range(self.n_samples):
+        for _ in tqdm(range(self.n_samples), desc="Sampling (MCMC)"):
             proposal = self.propose_new_state()
             
             # Calculate acceptance probability
@@ -99,7 +100,7 @@ class HMCsampler:
         samples = []
         accepted = 0
 
-        for _ in range(self.n_samples):
+        for _ in tqdm(range(self.n_samples), desc="Sampling (HMC)"):
             current_momentum = np.random.randn()
             proposed_state, proposed_momentum = self.leapfrog(self.current_state, current_momentum)
 
@@ -145,7 +146,7 @@ class mcmcsampler2D:
         samples = []
         accepted = 0
 
-        for _ in range(self.n_samples):
+        for _ in tqdm(range(self.n_samples), desc="Sampling (MCMC)"):
             proposal = self.propose_new_state()
             
             # Calculate acceptance probability
@@ -218,7 +219,7 @@ class HMCsampler2D:
         samples = []
         accepted = 0
 
-        for _ in range(self.n_samples):
+        for _ in tqdm(range(self.n_samples), desc="Sampling (HMC)"):
             current_momentum = np.random.randn(2)
             proposed_state, proposed_momentum = self.leapfrog(self.current_state, current_momentum)
 
@@ -238,3 +239,115 @@ class HMCsampler2D:
 
         self.acceptance_rate = accepted / self.n_samples
         return np.array(samples)
+    
+class mcmcsamplerN:
+    def __init__(self, log_prob, dim=2, proposal_width=1, n_samples=1000):
+        """
+        Initialize the MCMC sampler for a generic N-dimensional distribution.
+
+        Args:
+            log_prob (callable): Function to compute the log probability of the target distribution.
+            dim (int): Dimensionality of the target distribution.
+            proposal_width (float, optional): Standard deviation of the proposal distribution. Default is 1.
+            n_samples (int, optional): Number of samples to draw. Default is 1000.
+        """
+        self.log_prob = log_prob
+        self.dim = dim
+        self.proposal_width = proposal_width
+        self.n_samples = n_samples
+        self.acceptance_rate = 0
+        self.current_state = np.random.randn(dim)  # Initial state in N dimensions
+
+    def propose_new_state(self):
+        """Propose a new state based on the current state and proposal distribution."""
+        return self.current_state + np.random.normal(scale=self.proposal_width, size=self.dim)
+
+    def sample(self):
+        """Generate samples using the Metropolis-Hastings algorithm."""
+        samples = []
+        accepted = 0
+
+        for _ in tqdm(range(self.n_samples), desc="Sampling (MCMC)"):
+            proposal = self.propose_new_state()
+            current_log_prob = self.log_prob(self.current_state)
+            proposal_log_prob = self.log_prob(proposal)
+            accept_prob = np.exp(proposal_log_prob - current_log_prob)
+
+            if np.random.rand() < accept_prob:
+                self.current_state = proposal
+                accepted += 1
+
+            samples.append(self.current_state.copy())
+
+        self.acceptance_rate = accepted / self.n_samples
+        return np.array(samples)
+
+
+class HMCsamplerN:
+    def __init__(self, log_prob, grad_log_prob=None, dim=2, step_size=0.1, n_steps=10, n_samples=1000):
+        """
+        Initialize the HMC sampler for a generic N-dimensional distribution.
+
+        Args:
+            log_prob (callable): Function to compute the log probability.
+            grad_log_prob (callable, optional): Function to compute the gradient of the log probability. If None, gradient is estimated numerically.
+            dim (int): Dimensionality of the target distribution.
+            step_size (float, optional): Step size for the leapfrog integrator. Default is 0.1.
+            n_steps (int, optional): Number of steps for the leapfrog integrator. Default is 10.
+            n_samples (int, optional): Number of samples to draw. Default is 1000.
+        """
+        self.log_prob = log_prob
+        self.grad_log_prob = grad_log_prob if grad_log_prob is not None else self.numerical_grad_log_prob
+        self.dim = dim
+        self.step_size = step_size
+        self.n_steps = n_steps
+        self.n_samples = n_samples
+        self.acceptance_rate = 0
+        self.current_state = np.random.randn(dim)
+
+    def numerical_grad_log_prob(self, x, h=1e-5):
+        """Numerically estimate the gradient of the log probability function."""
+        grad = np.zeros_like(x)
+        for i in range(len(x)):
+            x_h_plus = np.array(x)
+            x_h_minus = np.array(x)
+            x_h_plus[i] += h
+            x_h_minus[i] -= h
+            grad[i] = (self.log_prob(x_h_plus) - self.log_prob(x_h_minus)) / (2 * h)
+        return grad
+
+    def leapfrog(self, x, p):
+        """Perform leapfrog steps to simulate Hamiltonian dynamics in N dimensions."""
+        x_new, p_new = np.copy(x), np.copy(p)
+        p_new += 0.5 * self.step_size * self.grad_log_prob(x_new)
+
+        for _ in range(self.n_steps - 1):
+            x_new += self.step_size * p_new
+            p_new += self.step_size * self.grad_log_prob(x_new)
+
+        x_new += self.step_size * p_new
+        p_new += 0.5 * self.step_size * self.grad_log_prob(x_new)
+
+        return x_new, p_new
+
+    def sample(self):
+        """Generate samples using the Hamiltonian Monte Carlo algorithm."""
+        samples = []
+        accepted = 0
+
+        for _ in tqdm(range(self.n_samples), desc="Sampling (HMC)"):
+            current_momentum = np.random.randn(self.dim)
+            proposed_state, proposed_momentum = self.leapfrog(self.current_state, current_momentum)
+            current_H = -self.log_prob(self.current_state) + 0.5 * np.sum(current_momentum**2)
+            proposed_H = -self.log_prob(proposed_state) + 0.5 * np.sum(proposed_momentum**2)
+            accept_prob = np.exp(current_H - proposed_H)
+
+            if np.random.rand() < accept_prob:
+                self.current_state = proposed_state
+                accepted += 1
+
+            samples.append(self.current_state.copy())
+
+        self.acceptance_rate = accepted / self.n_samples
+        return np.array(samples)
+
