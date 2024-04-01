@@ -12,7 +12,7 @@ class PolynomPost_flex:
             x_data (np.ndarray): The independent variable data.
             y_data (np.ndarray): The dependent variable data.
             proposal_width (float, optional): Proposal distribution's standard deviation for MCMC. Defaults to 1.
-            anal_grad (bool, optional): Flag to use analytical gradients if True; otherwise, None is used. Defaults to False.
+            grad_fn (callable, optional): Function to compute the gradient of the log probability. If None, gradient is estimated numerically.
             step_size (float, optional): Step size for the leapfrog integrator in HMC. Defaults to 0.1.
             n_steps (int, optional): Number of steps for the leapfrog integrator in HMC. Defaults to 10.
             n_samples (int, optional): Number of samples to draw in both MCMC and HMC. Defaults to 1000.
