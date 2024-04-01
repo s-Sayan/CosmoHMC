@@ -102,3 +102,34 @@ class PolynomPost_flex:
         
         hmc_samples = sampler_hmc.sample()
         return hmc_samples, sampler_hmc.acceptance_rate
+    
+    def generate_polynomial_lines(self, samples, x_line):
+        """
+        Generate mean, upper, and lower lines for a polynomial model based on parameter samples.
+    
+        Args:
+            model_fn (function): A polynomial model function that takes x and a list of parameters.
+            samples (np.ndarray): An array of sampled parameters with shape (n_samples, n_parameters).
+            x_line (np.ndarray): The x values for which to calculate the y values of the polynomial.
+        
+        Returns:
+            y_line_mean (np.ndarray): The mean y values calculated from the mean parameters.
+            y_line_upper (np.ndarray): The upper 1-sigma y values.
+            y_line_lower (np.ndarray): The lower 1-sigma y values.
+        """
+        # Calculate mean and std for each parameter across all samples
+        param_means = np.mean(samples, axis=0)
+        param_stds = np.std(samples, axis=0)
+    
+        # Calculate y values for the mean parameters
+        y_line_mean = self.model_fn(x_line, *param_means)
+    
+        # Generate samples for the upper and lower bounds by adding and subtracting std
+        param_samples_upper = np.array([mean + std for mean, std in zip(param_means, param_stds)])
+        param_samples_lower = np.array([mean - std for mean, std in zip(param_means, param_stds)])
+    
+        # Calculate y values for the upper and lower parameter samples
+        y_line_upper = self.model_fn(x_line, *param_samples_upper)
+        y_line_lower = self.model_fn(x_line, *param_samples_lower)
+    
+        return y_line_mean, y_line_upper, y_line_lower
