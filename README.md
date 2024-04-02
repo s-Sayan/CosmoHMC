@@ -45,7 +45,7 @@ hmcsmplr = sampler.HMCsampler(log_prob=lambda x: gaussian_log_prob(x, 0, 1),grad
 
 hmcsamples = hmcsmplr.sample()
 ```
-Other than this, CosmoHMC also has the basic Metropolis-Hastings sampler implemented. For basic posterior distribution sampling, please refer to demo_linear.ipynb and demo_polynom.ipynb in the examples folder.
+Other than this, CosmoHMC also has the basic Metropolis-Hastings sampler implemented. For basic posterior distribution sampling, please refer to `demo_linear.ipynb` and `demo_polynom.ipynb` in the examples folder.
 
 ### MPI Parallelization
  
