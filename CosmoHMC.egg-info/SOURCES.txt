@@ -4,6 +4,5 @@ setup.py
 CosmoHMC.egg-info/PKG-INFO
 CosmoHMC.egg-info/SOURCES.txt
 CosmoHMC.egg-info/dependency_links.txt
+CosmoHMC.egg-info/requires.txt
 CosmoHMC.egg-info/top_level.txt
-cosmohmc/__init__.py
-cosmohmc/sampler.py
