@@ -2,6 +2,15 @@ import cosmohmc.distnd.sampler_mpi as sampler
 import numpy as np
 #from matplotlib import pyplot as plt
 
+from mpi4py import MPI
+
+# Assuming the rest of your script is the same
+# and you have defined mc_sampler_mog and hmc_sampler_mog earlier in your script
+
+# MPI setup
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
 def mixture_of_gaussians_log_prob(x):
     mean1 = np.array([2.0, 2.0])
     cov1 = np.array([[1.0, 0.2], [0.2, 1.0]])
@@ -29,16 +38,18 @@ dim = 2  # Dimensionality of the distribution
 hmc_sampler_mog = sampler.HMCsamplerN(
     log_prob=lambda x: mixture_of_gaussians_log_prob(x),
     grad_log_prob=lambda x: numerical_grad(mixture_of_gaussians_log_prob, x),
-    dim=dim, step_size=0.02, n_steps=50, n_samples=100000
+    dim=dim, step_size=0.02, n_steps=50, n_samples=10000
 )
 
 mc_sampler_mog = sampler.mcmcsamplerN(
     log_prob=lambda x: mixture_of_gaussians_log_prob(x),
-    dim=dim, proposal_width=0.5, n_samples=100000
+    dim=dim, proposal_width=0.5, n_samples=10000
 )
 
 mc_samples_mog = mc_sampler_mog.sample()
 hmc_samples_mog = hmc_sampler_mog.sample()
 
-np.savetxt("mog_mc_samples.txt", mc_samples_mog)
-np.savetxt("mog_hmc_samples.txt", hmc_samples_mog)
+# Save the samples to files, but only on rank 0
+if rank == 0:
+    np.savetxt("mog_mc_samples.txt", mc_samples_mog)
+    np.savetxt("mog_hmc_samples.txt", hmc_samples_mog)
