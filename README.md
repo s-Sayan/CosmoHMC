@@ -54,7 +54,7 @@ CosmoHMC also supports MPI parallelization. To run the sampler in parallel, you 
 ```bash
 pip install mpi4py
 ```
-Then you can look at the demo_mpi.py file in the examples folder to see how to run the sampler in parallel. To run the demo_mpi.py file, you can use the following command:
+Then you can look at the ```demo_mpi.py``` file in the examples folder to see how to run the sampler in parallel. To run the demo_mpi.py file, you can use the following command:
 
 ```bash
 mpiexec -np 4 python demo_mpi.py
