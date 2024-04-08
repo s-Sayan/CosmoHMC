@@ -136,9 +136,9 @@ class almnclsampler():
             q_cl_dot = p_cl/self.m_cl
             q_almr_dot = p_almr/self.m_almr
             q_almi_dot = p_almi/self.m_almi
-            q_cl = q_cl + 0.5 * self.step_size * q_cl_dot
-            q_almr = q_almr + 0.5 * self.step_size * q_almr_dot
-            q_almi = q_almi + 0.5 * self.step_size * q_almi_dot
+            q_cl = q_cl + q_cl_dot * self.step_size * 0.5
+            q_almr = q_almr +  q_almr_dot * self.step_size * 0.5
+            q_almi = q_almi + q_almi_dot * self.step_size * 0.5
             
             # full momentum step
             Cl_hat = utils.Cl_of_almri(q_almr, q_almi, self.elmax)
@@ -152,9 +152,9 @@ class almnclsampler():
             q_cl_dot = p_cl/self.m_cl
             q_almr_dot = p_almr/self.m_almr
             q_almi_dot = p_almi/self.m_almi
-            q_cl = q_cl + 0.5 * self.step_size * q_cl_dot
-            q_almr = q_almr + 0.5 * self.step_size * q_almr_dot
-            q_almi = q_almi + 0.5 * self.step_size * q_almi_dot
+            q_cl = q_cl + q_cl_dot * self.step_size * 0.5
+            q_almr = q_almr +  q_almr_dot * self.step_size * 0.5
+            q_almi = q_almi + q_almi_dot * self.step_size * 0.5
             
         return p_cl, p_almr, p_almi, q_cl, q_almr, q_almi
             
