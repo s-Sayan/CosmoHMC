@@ -131,8 +131,10 @@ def pdot_alm(q_almr: np.ndarray, q_almi: np.ndarray, d_almr: np.ndarray, d_almi:
         l, m = n2lm_index(k)
         if m == 0:
             p_almr_d[k] = -q_almr[k] / q_cl[l] + (d_almr[k] - q_almr[k]) / Nl[l]
+            p_almi_d[k] = 0.0
         else:
-            p_almr_d[k] = p_almi_d[k] = -2 * q_almr[k] / q_cl[l] + 2 * (d_almr[k] - q_almr[k]) / Nl[l]
+            p_almr_d[k] = -2.0*q_almr[k]/q_cl[l] + 2.0*(d_almr[k] - q_almr[k])/Nl[l]
+            p_almi_d[k] = -2.0*q_almi[k]/q_cl[l] + 2.0*(d_almi[k] - q_almi[k])/Nl[l]
     return p_almr_d, p_almi_d
 
 def pdot_cl(el: np.ndarray, Cl_hat: np.ndarray, Cl: np.ndarray) -> np.ndarray:
