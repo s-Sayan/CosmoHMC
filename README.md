@@ -1,5 +1,5 @@
 <img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/cosmo_HMC.png" width="1000" alt="CosmoHMC Logo">
-CosmoHMC is a Python package providing a Hamiltonian Monte Carlo (HMC) sampler tailored specifically for cosmological data analysis. It is designed to efficiently sample from posterior distributions of cosmological parameters.
+CosmoHMC is a Python package providing a Hamiltonian Monte Carlo (HMC) sampler tailored specifically for cosmological data analysis, especially for the Cosmic Microwave Background (CMB). It is designed to efficiently sample from joint posterior distributions of the spherical harmonic coefficients of the signal CMB sky, the power-spectrum (and off-diagonal terms in the covariance matrix due to motion of our observation frame).
 
 ## Installation
 
