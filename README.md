@@ -56,3 +56,8 @@ Then you can look at the ```demo_mpi.py``` file in the examples folder to see ho
 ```bash
 mpiexec -np 4 python demo_mpi.py
 ```
+## Support and Acknowledgement
+The work has been supported by Raman Reseach Institute (RRI), Indian Institute of Science Education and Research (IISER), Pune, University of Geneva and Swiss Government Excellence Scholarship (ESKAS No. 2022.0312)
+<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/rri-phd-admissions-2020.webp" width="500" alt="CosmoHMC Logo">
+<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/IISER Pune.png" width="500" alt="CosmoHMC Logo">
+<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/unige.png" width="500" alt="CosmoHMC Logo">
