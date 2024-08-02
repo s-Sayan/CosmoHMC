@@ -31,6 +31,61 @@ def lm2n_index(l: int, m: int) -> int:
     """
     return int(l*(l+1)/2 + m)
 
+def convert_alm_to_2d(alm_data, elmax):
+    # Calculate the maximum l (elmax) from the length of alm_data
+    n_alms = int((elmax+1)*(elmax+2)/2)
+    # Ensure alm_data has the correct length
+    if len(alm_data) != n_alms:
+        raise ValueError(f"alm_data length is incorrect. Expected {n_alms}, got {len(alm_data)}")
+    
+    # Initialize the 2D array to hold the complex alms and the corresponding 1D real and imaginary parts
+    dlm = np.zeros((elmax + 1, elmax + 1), dtype=complex)
+    d_almr = np.zeros(n_alms)
+    d_almi = np.zeros(n_alms)
+    
+    # Fill the 2D array from the 1D alm_data
+    index = 0
+    for m in range(elmax + 1):
+        for l in range(m, elmax + 1):
+            dlm[l, m] = alm_data[index]
+            index += 1
+            
+    # Extract the real and imaginary parts
+    index = 0
+    for i in range(elmax + 1):
+        for j in range(i + 1):
+            d_almr[index] = dlm[i, j].real
+            d_almi[index] = dlm[i, j].imag
+            index += 1
+            
+    return d_almr, d_almi
+
+def reconstruct_alm_from_2d(d_almr, d_almi, elmax):
+    # Calculate the expected length of d_almr and d_almi based on elmax
+    n_alms = (elmax + 1) * (elmax + 2) // 2
+    
+    # Ensure d_almr and d_almi have the correct length
+    if len(d_almr) != n_alms or len(d_almi) != n_alms:
+        raise ValueError(f"d_almr and d_almi length is incorrect. Expected {n_alms}, got {len(d_almr)} and {len(d_almi)}")
+    
+    # Initialize the 2D array for the complex alms
+    dlm = np.zeros((elmax + 1, elmax + 1), dtype=complex)
+    
+    # Fill the 2D array by combining d_almr and d_almi
+    index = 0
+    for i in range(elmax + 1):
+        for j in range(i + 1):
+            dlm[i, j] = d_almr[index] + 1j * d_almi[index]
+            index += 1
+    
+    # Flatten the 2D array into 1D alm_data following the healpy convention
+    alm_data = []
+    for m in range(elmax + 1):
+        for l in range(m, elmax + 1):
+            alm_data.append(dlm[l, m])
+            
+    return np.array(alm_data)
+
 def mass_cl(ell: int, Cel: float = 1.0, Nel: float = 1.0) -> float:
     """
     Calculates the mass for Cl parameters.
@@ -222,4 +277,84 @@ def Cl_of_almri(almr: np.ndarray, almi: np.ndarray, elmax: int) -> np.ndarray:
         Cl_h[l] = temp / (2.0 * l + 1.0)
     return Cl_h
 
+def PE_pix(Cl_hat: np.ndarray, q_lm: np.ndarray, d_lm: np.ndarray,  Cl: np.ndarray, sigma: np.ndarray, nside: int) -> float:
+    """
+    Computes the potential energy term of the Hamiltonian.
 
+    Args:
+    - Cl_hat (np.ndarray): The Cl obtained using alms.
+    - q_lm (np.ndarray): sample q_lm in healpy format.
+    - d_lm (np.ndarray): data d_lm in healpy format.
+    - Cl (np.ndarray): The power spectrum Cl parameters.
+    - sigma (np.ndarray): The noise sigma in pixel space.
+    - nside (int): The nside of the healpix map.
+
+    Returns:
+    - float: The potential energy.
+    """
+    el = np.arange(len(Cl))
+    #term1 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * Dl_hat[2:] / Nl[2:])
+    #term1 = 0.5 * np.sum((hp.alm2map(d_lm - q_lm, nside))*(hp.alm2map(d_lm - q_lm, nside))/ sigma / sigma)
+    dismod2 = (d_lm - q_lm)* np.conj(d_lm - q_lm)
+    term1 = 0.5 * np.sum((hp.alm2map(dismod2, nside))/ sigma / sigma)
+    term2 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * Cl_hat[2:] / Cl[2:])
+    term3 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * np.log(Cl[2:]))
+    return term1 + term2 + term3
+
+def PE_pix_v2(Cl_hat: np.ndarray, qlmr: np.ndarray, qlmi: np.ndarray, dlmr: np.ndarray, dlmi: np.ndarray,  Cl: np.ndarray, sigma: np.ndarray, nside: int) -> float:
+    """
+    Computes the potential energy term of the Hamiltonian.
+
+    Args:
+    - Cl_hat (np.ndarray): The Cl obtained using alms.
+    - q_lm (np.ndarray): sample q_lm in healpy format.
+    - d_lm (np.ndarray): data d_lm in healpy format.
+    - Cl (np.ndarray): The power spectrum Cl parameters.
+    - sigma (np.ndarray): The noise sigma in pixel space.
+    - nside (int): The nside of the healpix map.
+
+    Returns:
+    - float: The potential energy.
+    """
+    el = np.arange(len(Cl))
+    #term1 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * Dl_hat[2:] / Nl[2:])
+    difflm = reconstruct_alm_from_2d(dlmr-qlmr, dlmi-qlmi, elmax = nside)
+    
+    term1 = 0.5 * np.sum((hp.alm2map(difflm, nside))*(hp.alm2map(difflm, nside))/ sigma / sigma)
+    term2 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * Cl_hat[2:] / Cl[2:])
+    term3 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * np.log(Cl[2:]))
+    return term1 + term2 + term3
+
+def PE_pix_v3(Cl_hat: np.ndarray, q_lm: np.ndarray, d_lm: np.ndarray,  Cl: np.ndarray, Nl: np.ndarray) -> float:
+    """
+    Computes the potential energy term of the Hamiltonian.
+
+    Args:
+    - Cl_hat (np.ndarray): The Cl obtained using alms.
+    - q_lm (np.ndarray): sample q_lm in healpy format.
+    - d_lm (np.ndarray): data d_lm in healpy format.
+    - Cl (np.ndarray): The power spectrum Cl parameters.
+    - sigma (np.ndarray): The noise sigma in pixel space.
+    - nside (int): The nside of the healpix map.
+
+    Returns:
+    - float: The potential energy.
+    """
+    el = np.arange(len(Cl))
+    lmax = len(Cl) - 1
+    nalms = n_alms(len(Cl)-1)
+    #term1 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * Dl_hat[2:] / Nl[2:])
+    dismod2 = np.real((d_lm - q_lm)* np.conj(d_lm - q_lm))
+    dismodr, dismodi = convert_alm_to_2d(dismod2, lmax)
+    integrand = np.zeros(lmax+1)
+    for l in range(3, lmax+1):
+        temp = dismodr[lm2n_index(l, 0)]**2
+        for m in range(1, l + 1):
+            k = lm2n_index(l, m)
+            temp += 2.0 * dismodr[k]
+        integrand[l] = temp / Nl[l]
+    
+    term1 = 0.5 * np.real(np.sum(integrand[3:]))
+    term2 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * Cl_hat[2:] / Cl[2:])
+    term3 = 0.5 * np.sum((2.0 * el[2:] + 1.0) * np.log(Cl[2:]))
+    return term1 + term2 + term3, dismod2
