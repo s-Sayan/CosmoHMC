@@ -58,6 +58,6 @@ mpiexec -np 4 python demo_mpi.py
 ```
 ## Support and Acknowledgement
 The work has been supported by Raman Reseach Institute (RRI), Indian Institute of Science Education and Research (IISER), Pune, University of Geneva and Swiss Government Excellence Scholarship (ESKAS No. 2022.0312)\
-<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/rri-phd-admissions-2020.webp" width="170" alt="CosmoHMC Logo">
-<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/IISER Pune.png" width="300" alt="CosmoHMC Logo">
-<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/unige.png" width="300" alt="CosmoHMC Logo">
+<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/rri-phd-admissions-2020.webp" width="85" alt="CosmoHMC Logo">
+<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/IISER Pune.png" width="150" alt="CosmoHMC Logo">
+<img src="https://github.com/s-Sayan/CosmoHMC/blob/main/figure/unige.png" width="150" alt="CosmoHMC Logo">
